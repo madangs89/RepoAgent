@@ -1,0 +1,24 @@
+{
+  "name": "sandbox-env",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+    "scripts": {
+    "dev": "tsx watch index.ts",
+    "start": "tsx index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/dockerode": "^4.0.1",
+    "@types/express": "^5.0.6",
+    "tsx": "^4.23.11"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "dockerode": "^5.0.1",
+    "express": "^5.2.1",
+    "shared-types" :"*"
+  }
+}

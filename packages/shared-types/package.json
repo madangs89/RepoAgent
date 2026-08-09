@@ -1,0 +1,19 @@
+{
+  "name": "shared-types",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+    "exports": {
+    "./client": "./index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/dockerode": "^4.0.1",
+    "dockerode": "^5.0.1"
+  }
+}
