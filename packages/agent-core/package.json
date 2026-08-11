@@ -1,11 +1,13 @@
 {
-  "name": "backend",
+  "name": "agent-core",
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "exports": {
+    "./client": "./index.ts"
+  },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/express": "^5.0.6"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -14,11 +16,7 @@
     "@langchain/core": "^1.2.5",
     "@langchain/google": "^0.2.1",
     "@langchain/langgraph": "^1.4.9",
-    "@types/dotenv": "^8.2.3",
-    "agent-core": "*",
     "axios": "^1.19.0",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
     "langchain": "^1.5.5",
     "shared-types": "*",
     "zod": "^4.4.3"
