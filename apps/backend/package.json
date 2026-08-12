@@ -5,7 +5,8 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/express": "^5.0.6"
+    "@types/express": "^5.0.6",
+    "@types/ioredis": "^5.0.0"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -19,6 +20,7 @@
     "axios": "^1.19.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "ioredis": "^6.0.0",
     "langchain": "^1.5.5",
     "shared-types": "*",
     "zod": "^4.4.3"
