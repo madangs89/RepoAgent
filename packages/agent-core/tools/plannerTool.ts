@@ -2,9 +2,7 @@ import { tool } from "@langchain/core/tools";
 import * as z from "zod";
 import axios from "axios";
 
-// ---------------------------------------------------------------------------
-// Shared helpers
-// ---------------------------------------------------------------------------
+
 
 const MAX_OUTPUT_LINES = 200; // hard cap applied to every tool's stdout, regardless of underlying command flags
 const MAX_OUTPUT_CHARS = 20000; // secondary cap in case lines are very long (e.g. minified files)
@@ -68,10 +66,6 @@ async function execCmd(
     };
   }
 }
-
-// ---------------------------------------------------------------------------
-// Tools
-// ---------------------------------------------------------------------------
 
 export function makeTools(container_id: string, sandboxUrl: string) {
   const getFileTree = tool(
