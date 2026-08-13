@@ -2,8 +2,6 @@ import { tool } from "@langchain/core/tools";
 import * as z from "zod";
 import axios from "axios";
 
-
-
 const MAX_OUTPUT_LINES = 200; // hard cap applied to every tool's stdout, regardless of underlying command flags
 const MAX_OUTPUT_CHARS = 20000; // secondary cap in case lines are very long (e.g. minified files)
 
