@@ -27,8 +27,12 @@ app.post("/start-sandbox", async (req, res) => {
 app.post("/exec-command", async (req, res) => {
   const { container_id, cmd } = req.body;
 
+  console.log(`Received request to execute command in container ${container_id}:`, cmd);
+
   try {
     const result = await sandbox.execInSession(container_id, cmd);
+
+    console.log({result});
 
     if (result.exitCode === 128) {
       res

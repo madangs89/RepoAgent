@@ -21,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const sandboxUrl = "http://localhost:3000";
 app.post("/api/accept", async (req, res) => {
+  console.log("Received request to accept repo:", req.body);
   let container_id: string = "";
   try {
     const { repo, issue } = req.body;
@@ -46,13 +47,20 @@ app.post("/api/accept", async (req, res) => {
 
     container_id = sandboxCreationRequest.data.container_id;
 
-    // Execute clone command in the sandbox
-    const cmd = ["bash", "-c", `git clone ${repo} /workspace/repo`];
+    console.log(`Sandbox created successfully in container ${container_id}`);
 
+    // Execute clone command in the sandbox
+    // const cmd = ["bash", "-c", `git clone ${repo} /workspace/repo`];
+    const cmd = [
+      "bash",
+      "-c",
+      `GIT_TERMINAL_PROMPT=0 git clone --depth 1 ${repo} /workspace/repo; echo EXIT:$?`,
+    ];
     const cloneRepoRequest = await axios.post(`${sandboxUrl}/exec-command`, {
       container_id,
       cmd,
     });
+    console.log("Cloned Repo", cloneRepoRequest.data);
 
     if (!cloneRepoRequest.data.success) {
       return res.status(500).json({
