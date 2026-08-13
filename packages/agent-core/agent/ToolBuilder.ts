@@ -1,10 +1,10 @@
-import type { AgentContext, AgentType } from "shared-types/client";
+import type { AgentFlowState, AgentType } from "shared-types/client";
 import { makeTools } from "../tools/plannerTool";
 import { StructuredTool } from "@langchain/core/tools";
 
 export const getTools = (
   type: AgentType,
-  context: AgentContext,
+  context: AgentFlowState,
 ): { tools: StructuredTool[]; systemPrompt: string } => {
   let tools: StructuredTool[] = [];
   switch (type) {
