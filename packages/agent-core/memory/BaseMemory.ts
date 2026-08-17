@@ -1,9 +1,9 @@
 import Redis from "ioredis";
-import type { Status } from "shared-types/client";
+import type { AgentType, Status } from "shared-types/client";
 
 const MAX_BUFFER_THRESHOLD = 30;
 const KEEP_BUFFER_COUNT = 20;
-class BaseMemory {
+export class BaseMemoryAgentMemory {
   private redisClient: Redis;
 
   constructor(redisClient: Redis) {
@@ -74,6 +74,7 @@ class BaseMemory {
     containerId: string,
     message: {
       type: "ai" | "user" | "system";
+      agentType: AgentType;
       content: string;
       tool_calls?: any[];
     }[],
@@ -81,9 +82,15 @@ class BaseMemory {
     if (!message || message.length === 0) {
       return;
     }
-    const key = `agent_memory:${containerId}:thread`;
+    const key = `agent_memory:${containerId}:thread:${message[0]!.agentType || "unknown"}`;
 
-    const stringifiedMessages = message.map((msg) => JSON.stringify(msg));
+    const stringifiedMessages = message.map((msg) =>
+      JSON.stringify({
+        type: msg.type,
+        content: msg.content,
+        tool_calls: msg.tool_calls,
+      }),
+    );
 
     await this.redisClient.rpush(key, ...stringifiedMessages);
   };

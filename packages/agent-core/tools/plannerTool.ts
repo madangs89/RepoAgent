@@ -1,6 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import * as z from "zod";
 import axios from "axios";
+import type { AgentType } from "shared-types/client";
 
 const MAX_OUTPUT_LINES = 200; // hard cap applied to every tool's stdout, regardless of underlying command flags
 const MAX_OUTPUT_CHARS = 20000; // secondary cap in case lines are very long (e.g. minified files)
@@ -35,7 +36,15 @@ function assertSafeRelativePath(p: string): void {
   }
 }
 
-const EXCLUDED_DIRS = ["node_modules", ".git", "dist", "build", "vendor", ".next", "coverage"];
+const EXCLUDED_DIRS = [
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  "vendor",
+  ".next",
+  "coverage",
+];
 
 async function execCmd(
   sandboxUrl: string,
@@ -65,12 +74,21 @@ async function execCmd(
   }
 }
 
-export function makeTools(container_id: string, sandboxUrl: string) {
+export function makeTools(
+  container_id: string,
+  sandboxUrl: string,
+  type: AgentType,
+) {
   const getFileTree = tool(
     async () => {
       // Array-based cmd, no shell interpolation. Truncation happens in JS (execCmd),
       // not via a shell pipe, so behavior is consistent everywhere.
-      return execCmd(sandboxUrl, container_id, ["git", "-C", "repo", "ls-files"]);
+      return execCmd(sandboxUrl, container_id, [
+        "git",
+        "-C",
+        "repo",
+        "ls-files",
+      ]);
     },
     {
       name: "getFileTree",
@@ -98,7 +116,9 @@ export function makeTools(container_id: string, sandboxUrl: string) {
         path: z
           .string()
           .optional()
-          .describe("Relative directory path, e.g. '.github/workflows'. Omit or use '.' for repo root."),
+          .describe(
+            "Relative directory path, e.g. '.github/workflows'. Omit or use '.' for repo root.",
+          ),
       }),
     },
   );
@@ -118,22 +138,32 @@ export function makeTools(container_id: string, sandboxUrl: string) {
       description: "Read a specific line range from a file in the repository.",
       schema: z.object({
         file_name: z.string().describe("Full relative path, e.g. src/index.ts"),
-        lineStart: z.number().int().positive().describe("Starting line number (1-indexed)"),
-        lineEnd: z.number().int().positive().describe("Ending line number (inclusive)"),
+        lineStart: z
+          .number()
+          .int()
+          .describe("Starting line number (1-indexed, positive integer)"),
+        lineEnd: z
+          .number()
+          .int()
+          .describe("Ending line number (inclusive, positive integer)"),
       }),
     },
   );
 
   const grepFiles = tool(
     async ({ pattern, path, caseInsensitive, showLineNumbers, filesOnly }) => {
-      const target = path ? (assertSafeRelativePath(path), `repo/${path}`) : "repo";
+      const target = path
+        ? (assertSafeRelativePath(path), `repo/${path}`)
+        : "repo";
 
       const flags = ["r", "I"]; // -r recursive, -I skip binary files
       if (caseInsensitive) flags.push("i");
       if (filesOnly) flags.push("l");
       if (showLineNumbers) flags.push("n");
 
-      const excludeArgs = EXCLUDED_DIRS.flatMap((dir) => [`--exclude-dir=${dir}`]);
+      const excludeArgs = EXCLUDED_DIRS.flatMap((dir) => [
+        `--exclude-dir=${dir}`,
+      ]);
 
       return execCmd(sandboxUrl, container_id, [
         "grep",
@@ -164,7 +194,11 @@ export function makeTools(container_id: string, sandboxUrl: string) {
   const openFile = tool(
     async ({ file_name }) => {
       assertSafeRelativePath(file_name);
-      return execCmd(sandboxUrl, container_id, ["cat", "-n", `repo/${file_name}`]);
+      return execCmd(sandboxUrl, container_id, [
+        "cat",
+        "-n",
+        `repo/${file_name}`,
+      ]);
     },
     {
       name: "openFile",
@@ -185,7 +219,9 @@ export function makeTools(container_id: string, sandboxUrl: string) {
       // inside the Python script, rather than being interpolated as raw string literals.
       // This avoids any issue with quotes, backslashes, or special characters in either value.
       const encodedContent = Buffer.from(content, "utf-8").toString("base64");
-      const encodedPath = Buffer.from(`repo/${file_name}`, "utf-8").toString("base64");
+      const encodedPath = Buffer.from(`repo/${file_name}`, "utf-8").toString(
+        "base64",
+      );
 
       const script = `
 import base64
@@ -237,12 +273,11 @@ print(f"Replaced lines ${lineStart}-${lineEnd} in {path}")
         lineStart: z
           .number()
           .int()
-          .positive()
+
           .describe("First line number to replace (1-indexed, inclusive)."),
         lineEnd: z
           .number()
           .int()
-          .positive()
           .describe(
             "Last line number to replace (1-indexed, inclusive). Same as lineStart to insert without replacing.",
           ),
@@ -250,5 +285,17 @@ print(f"Replaced lines ${lineStart}-${lineEnd} in {path}")
     },
   );
 
-  return [getFileTree, listDirectory, readFile, grepFiles, openFile, writeFile];
+  switch (type) {
+    case "planner":
+      return [
+        getFileTree,
+        listDirectory,
+        readFile,
+        grepFiles,
+        openFile,
+        writeFile,
+      ];
+    case "coder":
+      return [getFileTree, listDirectory, readFile, grepFiles, openFile, writeFile];
+  }
 }

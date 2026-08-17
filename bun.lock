@@ -95,6 +95,7 @@
         "@langchain/core": "^1.2.5",
         "@types/dockerode": "^4.0.1",
         "dockerode": "^5.0.1",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@types/bun": "latest",

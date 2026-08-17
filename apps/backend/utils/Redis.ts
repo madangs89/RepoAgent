@@ -1,3 +1,3 @@
 import Redis from "ioredis";
 
-const redisClient: Redis = new Redis({});
+export const redisClient: Redis = new Redis("redis://localhost:6379");

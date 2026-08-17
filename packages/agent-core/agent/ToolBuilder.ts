@@ -9,7 +9,7 @@ export const getTools = (
   let tools: StructuredTool[] = [];
   switch (type) {
     case "planner":
-      tools = makeTools(context.containerId, context.sandboxUrl);
+      tools = makeTools(context.containerId, context.sandboxUrl, "planner");
 
       const systemPrompt = `You are a senior software engineer acting as a PLANNER for a coding agent system.
 
@@ -89,7 +89,7 @@ Once all changes from the plan are implemented, respond with a summary in this e
 ## Notes for Reviewer
 - <anything the reviewer should specifically check, e.g. assumptions you made, edge cases not covered>`;
 
-      tools = makeTools(context.containerId, context.sandboxUrl);
+      tools = makeTools(context.containerId, context.sandboxUrl, "coder");
       return { tools, systemPrompt: CODER_SYSTEM_PROMPT };
   }
 

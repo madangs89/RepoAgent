@@ -3,10 +3,17 @@ import axios from "axios";
 import dotenv from "dotenv";
 
 dotenv.config();
-
 import { HumanMessage } from "@langchain/core/messages";
-import { BaseAgent } from "agent-core/client";
-import { Provider } from "shared-types/client";
+import { BaseAgent, BaseMemoryAgentMemory } from "agent-core/client";
+import {
+  PlannerResponse,
+  PlannerResponseFormat,
+  Provider,
+  Status,
+} from "shared-types/client";
+import { redisClient } from "./utils/Redis";
+
+const BaseAgentMemory = new BaseMemoryAgentMemory(redisClient);
 
 const agent = new BaseAgent({
   apiKey: process.env.GOOGLE_API_KEY!,
@@ -69,6 +76,13 @@ app.post("/api/accept", async (req, res) => {
       });
     }
 
+    await BaseAgentMemory.addConfig({
+      containerId: container_id,
+      sandboxUrl: sandboxUrl,
+      repoPath: repo,
+      issue: issue,
+    });
+
     console.log(`Repo cloned successfully in container ${container_id}`);
     const plannerAgent = agent.getAgent({
       type: "planner",
@@ -85,9 +99,30 @@ app.post("/api/accept", async (req, res) => {
       messages: [new HumanMessage(issue)],
     });
 
-    const finalMessage = result.messages[result.messages.length - 1]!;
+    console.log("final result from planner agent:", result.structuredResponse);
+    const finalMessage = PlannerResponse.safeParse(result.structuredResponse);
 
-    console.log("Final Message from Planner Agent:", finalMessage.content);
+    if (!finalMessage.success) {
+      console.error("Failed to parse planner response:", finalMessage.error);
+      return res.status(500).json({
+        message: "Failed to parse planner response",
+        success: false,
+      });
+    }
+
+    console.log("Final Message from Planner Agent:", finalMessage.data);
+
+    const plan = finalMessage.data.steps.map((s, index) => {
+      return {
+        id: index.toString(),
+        plan: s,
+        status: Status.PENDING,
+      };
+    });
+
+    console.log("Plan to be added to config:", plan);
+
+    await BaseAgentMemory.addPlanToConfig(container_id, plan);
 
     const coderAgent = agent.getAgent({
       type: "coder",
@@ -101,17 +136,21 @@ app.post("/api/accept", async (req, res) => {
 
     console.log("Coder Agent created");
     const coderResult = await coderAgent.invoke({
-      messages: [new HumanMessage(`Plan:\n${finalMessage.content}`)],
+      messages: [new HumanMessage(`Plan:\n${finalMessage.data}`)],
+    });
+
+    console.log({
+      coderResult: coderResult.structuredResponse,
     });
 
     console.log(
       "Final Message from Coder Agent:",
-      coderResult.messages[coderResult.messages.length - 1]!.content,
+      coderResult.structuredResponse,
     );
 
     return res.status(200).json({
       success: true,
-      plan: finalMessage.content,
+      plan: finalMessage.data,
       container_id,
     });
   } catch (error) {

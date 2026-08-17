@@ -1,9 +1,10 @@
 import { ChatGoogle } from "@langchain/google";
 import type { AgentFlowState, AgentType } from "shared-types/client";
-import { Provider } from "shared-types/client";
+import { PlannerResponseFormat, Provider } from "shared-types/client";
 import { getTools } from "./ToolBuilder";
 import type { StructuredTool } from "@langchain/core/tools";
-import { createAgent } from "langchain";
+import { createAgent, toolStrategy } from "langchain";
+import { z } from "zod";
 
 interface BaseAgentRequirements {
   model: string;
@@ -44,10 +45,25 @@ export class BaseAgent {
   public getAgent = (params: AgentInvokeParams) => {
     const { type, context } = params;
     const { tools, systemPrompt } = getTools(type, context);
+
+    let resFormat: any = undefined;
+
+    switch (type) {
+      case "planner":
+        resFormat = PlannerResponseFormat;
+        break;
+    }
+
+    const agentConfig: any = {};
+    if (resFormat) {
+      agentConfig.responseFormat = toolStrategy(resFormat);
+    }
+
     return createAgent({
       model: this.llmModel,
       tools: tools as StructuredTool[],
       systemPrompt: systemPrompt as string,
+      ...agentConfig,
     });
   };
 }
