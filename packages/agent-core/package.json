@@ -21,6 +21,7 @@
     "ioredis": "^6.0.0",
     "langchain": "^1.5.5",
     "shared-types": "*",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "backend": "*"
   }
 }

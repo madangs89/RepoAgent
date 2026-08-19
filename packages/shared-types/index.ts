@@ -28,7 +28,7 @@ export interface AgentFlowState {
 }
 
 export type AgentType =
-  "planner" | "coder" | "reviewer" | "debugger";
+  "planner" | "coder" | "reviewer" | "debugger" | "submitter";
 
 export interface AgentConfig {
   type: AgentType;
@@ -66,4 +66,39 @@ export const PlannerResponseFormat = {
     steps: { type: "array", items: { type: "string" } },
   },
   required: ["root_cause", "files_to_change", "steps"],
+};
+
+// Response format for the coder agent
+export const CoderResponse = z.object({
+  changes_made: z.array(
+    z.object({
+      file_path: z.string(),
+      change_description: z.string(),
+    }),
+  ),
+  deviations_from_plan: z.array(z.string()).default([]),
+  notes_for_reviewer: z.string().default(""),
+});
+
+export const CoderResponseFormat = {
+  type: "object",
+  properties: {
+    changes_made: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          file_path: { type: "string" },
+          change_description: { type: "string" },
+        },
+        required: ["file_path", "change_description"],
+      },
+    },
+    deviations_from_plan: {
+      type: "array",
+      items: { type: "string" },
+    },
+    notes_for_reviewer: { type: "string" },
+  },
+  required: ["changes_made", "deviations_from_plan", "notes_for_reviewer"],
 };

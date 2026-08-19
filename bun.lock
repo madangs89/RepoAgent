@@ -59,6 +59,7 @@
         "@langchain/google": "^0.2.1",
         "@langchain/langgraph": "^1.4.9",
         "axios": "^1.19.0",
+        "backend": "*",
         "ioredis": "^6.0.0",
         "langchain": "^1.5.5",
         "shared-types": "*",

@@ -34,7 +34,7 @@ export class BaseMemoryAgentMemory {
     const config = await this.redisClient.hgetall(key);
     return config;
   };
-
+  //  about plan
   public addPlanToConfig = async (
     containerId: string,
     plan: { id: string; plan: string; status: Status }[],
@@ -70,6 +70,17 @@ export class BaseMemoryAgentMemory {
     await this.redisClient.hset(key, "plan", JSON.stringify(updatedPlan));
   };
 
+  // add any key-value pair to the config
+  public addKeyValueToConfig = async (
+    containerId: string,
+    key: string,
+    value: any,
+  ) => {
+    const configKey = `agent_config:${containerId}:state`;
+    await this.redisClient.hset(configKey, key, JSON.stringify(value));
+  };
+
+  // This is mainly for handling the agent internal thread messages, which can be large and need to be compressed over time.
   public appendThreadMessage = async (
     containerId: string,
     message: {

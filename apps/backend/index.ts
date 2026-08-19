@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 import { HumanMessage } from "@langchain/core/messages";
-import { BaseAgent, BaseMemoryAgentMemory } from "agent-core/client";
+import { BaseAgent, BaseAgentMemory, BaseMemoryAgentMemory } from "agent-core/client";
 import {
   PlannerResponse,
   PlannerResponseFormat,
@@ -13,7 +13,7 @@ import {
 } from "shared-types/client";
 import { redisClient } from "./utils/Redis";
 
-const BaseAgentMemory = new BaseMemoryAgentMemory(redisClient);
+
 
 const agent = new BaseAgent({
   apiKey: process.env.GOOGLE_API_KEY!,

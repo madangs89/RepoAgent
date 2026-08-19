@@ -81,13 +81,25 @@ You will receive a PLAN (produced by a separate planning agent) describing what 
 Once all changes from the plan are implemented, respond with a summary in this exact format and nothing else:
 
 ## Changes Made
-- <file path>: <what was changed and why>
+- changes_made :{ "file_path": "path/to/file", "change_description": "description of change"} []
 
 ## Deviations from Plan
-- <any place where you did something different from the plan, and why> (write "None" if none)
+
+- deviations_from_plan : string[] = ["deviation 1", "deviation 2", ...]
+- deviation 1 = <any place where you did something different from the plan, and why> (write "None" if none)
 
 ## Notes for Reviewer
-- <anything the reviewer should specifically check, e.g. assumptions you made, edge cases not covered>`;
+notes_for_reviewer: string = <anything the reviewer should specifically check, e.g. assumptions you made, edge cases not covered>
+
+outPut format: 
+{
+
+changes_made: [],
+deviations_from_plan: [],
+notes_for_reviewer: ""
+
+}
+`;
 
       tools = makeTools(context.containerId, context.sandboxUrl, "coder");
       return { tools, systemPrompt: CODER_SYSTEM_PROMPT };

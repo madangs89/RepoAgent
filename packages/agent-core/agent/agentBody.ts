@@ -1,6 +1,10 @@
 import { ChatGoogle } from "@langchain/google";
 import type { AgentFlowState, AgentType } from "shared-types/client";
-import { PlannerResponseFormat, Provider } from "shared-types/client";
+import {
+  CoderResponseFormat,
+  PlannerResponseFormat,
+  Provider,
+} from "shared-types/client";
 import { getTools } from "./ToolBuilder";
 import type { StructuredTool } from "@langchain/core/tools";
 import { createAgent, toolStrategy } from "langchain";
@@ -51,6 +55,9 @@ export class BaseAgent {
     switch (type) {
       case "planner":
         resFormat = PlannerResponseFormat;
+        break;
+      case "coder":
+        resFormat = CoderResponseFormat;
         break;
     }
 
