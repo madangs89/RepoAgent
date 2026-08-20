@@ -2,8 +2,11 @@ import { ChatGoogle } from "@langchain/google";
 import type { AgentFlowState, AgentType } from "shared-types/client";
 import {
   CoderResponseFormat,
+  DebuggerResponseFormat,
   PlannerResponseFormat,
   Provider,
+  ReviewerResponseFormat,
+  SubmitterResponseFormat,
 } from "shared-types/client";
 import { getTools } from "./ToolBuilder";
 import type { StructuredTool } from "@langchain/core/tools";
@@ -58,6 +61,15 @@ export class BaseAgent {
         break;
       case "coder":
         resFormat = CoderResponseFormat;
+        break;
+      case "reviewer":
+        resFormat = ReviewerResponseFormat;
+        break;
+      case "debugger":
+        resFormat = DebuggerResponseFormat;
+        break;
+      case "submitter":
+        resFormat = SubmitterResponseFormat;
         break;
     }
 

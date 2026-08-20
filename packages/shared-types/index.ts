@@ -102,3 +102,76 @@ export const CoderResponseFormat = {
   },
   required: ["changes_made", "deviations_from_plan", "notes_for_reviewer"],
 };
+
+export const ReviewerResponse = z.object({
+  feedback: z.string(),
+  verdict: z.enum(["pass", "fail"]),
+  note: z.string().optional(),
+});
+
+export const ReviewerResponseFormat = {
+  type: "object",
+  properties: {
+    feedback: { type: "string" },
+    verdict: { type: "string", enum: ["pass", "fail"] },
+    note: { type: "string" },
+  },
+  required: ["feedback", "verdict"],
+};
+
+export const DebuggerResponse = z.object({
+  root_cause: z.string(),
+  fix_applied: z.array(
+    z.object({
+      file_path: z.string(),
+      change_description: z.string(),
+    }),
+  ),
+  reproduced_before_fix: z.boolean(),
+  verified_after_fix: z.boolean(),
+  notes_for_reviewer: z.string().optional(),
+});
+
+export const DebuggerResponseFormat = {
+  type: "object",
+  properties: {
+    root_cause: { type: "string" },
+    fix_applied: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          file_path: { type: "string" },
+          change_description: { type: "string" },
+        },
+        required: ["file_path", "change_description"],
+      },
+    },
+    reproduced_before_fix: { type: "boolean" },
+    verified_after_fix: { type: "boolean" },
+
+    notes_for_reviewer: { type: "string"},
+  },
+  required: [
+    "root_cause",
+    "fix_applied",
+    "reproduced_before_fix",
+    "verified_after_fix",
+  ],
+};
+
+export const SubmitterResponse = z.object({
+  committed: z.boolean(),
+  commit_message: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const SubmitterResponseFormat = {
+  type: "object",
+  properties: {
+    committed: { type: "boolean" },
+    commit_message: { type: "string"},
+    notes: { type: "string" },
+  },
+  required: ["committed"],
+};

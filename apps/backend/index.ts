@@ -3,23 +3,12 @@ import axios from "axios";
 import dotenv from "dotenv";
 
 dotenv.config();
-import { HumanMessage } from "@langchain/core/messages";
-import { BaseAgent, BaseAgentMemory, BaseMemoryAgentMemory } from "agent-core/client";
 import {
-  PlannerResponse,
-  PlannerResponseFormat,
-  Provider,
-  Status,
-} from "shared-types/client";
+  BaseAgentMemory,
+  graph,
+} from "agent-core/client";
+
 import { redisClient } from "./utils/Redis";
-
-
-
-const agent = new BaseAgent({
-  apiKey: process.env.GOOGLE_API_KEY!,
-  model: "gemini-2.5-flash",
-  provider: Provider.GOOGLE,
-});
 
 const app = express();
 
@@ -83,74 +72,15 @@ app.post("/api/accept", async (req, res) => {
       issue: issue,
     });
 
-    console.log(`Repo cloned successfully in container ${container_id}`);
-    const plannerAgent = agent.getAgent({
-      type: "planner",
-      context: {
-        containerId: container_id,
-        sandboxUrl: sandboxUrl,
-        repoPath: "/workspace/repo",
-        issueId: "123", // You can replace this with
-      },
+    const finalState = await graph.invoke({
+      issue,
+      containerId: container_id,
+      sandboxUrl,
     });
-
-    console.log("Planner Agent created");
-    const result = await plannerAgent.invoke({
-      messages: [new HumanMessage(issue)],
-    });
-
-    console.log("final result from planner agent:", result.structuredResponse);
-    const finalMessage = PlannerResponse.safeParse(result.structuredResponse);
-
-    if (!finalMessage.success) {
-      console.error("Failed to parse planner response:", finalMessage.error);
-      return res.status(500).json({
-        message: "Failed to parse planner response",
-        success: false,
-      });
-    }
-
-    console.log("Final Message from Planner Agent:", finalMessage.data);
-
-    const plan = finalMessage.data.steps.map((s, index) => {
-      return {
-        id: index.toString(),
-        plan: s,
-        status: Status.PENDING,
-      };
-    });
-
-    console.log("Plan to be added to config:", plan);
-
-    await BaseAgentMemory.addPlanToConfig(container_id, plan);
-
-    const coderAgent = agent.getAgent({
-      type: "coder",
-      context: {
-        containerId: container_id,
-        sandboxUrl: sandboxUrl,
-        repoPath: "/workspace/repo",
-        issueId: "123", // You can replace this with
-      },
-    });
-
-    console.log("Coder Agent created");
-    const coderResult = await coderAgent.invoke({
-      messages: [new HumanMessage(`Plan:\n${finalMessage.data}`)],
-    });
-
-    console.log({
-      coderResult: coderResult.structuredResponse,
-    });
-
-    console.log(
-      "Final Message from Coder Agent:",
-      coderResult.structuredResponse,
-    );
 
     return res.status(200).json({
       success: true,
-      plan: finalMessage.data,
+      finalState,
       container_id,
     });
   } catch (error) {
@@ -163,7 +93,8 @@ app.post("/api/accept", async (req, res) => {
   }
 });
 
-app.listen(5000, () => {
+app.listen(5000, async () => {
   console.log(process.env.GOOGLE_API_KEY);
+  console.log(await redisClient.ping());
   console.log("server is running http://localhost:5000");
 });

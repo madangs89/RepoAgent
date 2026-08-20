@@ -309,7 +309,6 @@ print(f"Replaced lines ${lineStart}-${lineEnd} in {path}")
     },
   );
 
-  // FIX: previously interpolated raw `content` into an `sh -c` heredoc — a line containing
   // "EOF", backticks, or `$(...)` could break out of the heredoc and execute arbitrary shell.
   // Now routed through base64 + python3, same pattern as writeFile.
   const createFile = tool(
@@ -415,13 +414,11 @@ print(f"Created {path}")
         start: z
           .number()
           .int()
-          .positive()
           .optional()
           .describe("Optional start line (requires end)"),
         end: z
           .number()
           .int()
-          .positive()
           .optional()
           .describe("Optional end line (requires start)"),
       }),
@@ -548,7 +545,6 @@ print(f"Created {path}")
 
   // ---------- dependencies / execution ----------
 
-  // FIX: previously accepted and executed ANY command with no validation (e.g. "rm -rf repo").
   // Now the leading binary must be on INSTALL_ALLOWLIST.
   const installDependencies = tool(
     async ({ cmd }) => {
@@ -589,7 +585,6 @@ print(f"Created {path}")
     },
   );
 
-  // FIX: this is the actual missing capability from earlier — every other tool wraps a fixed
   // command. This lets planner/reviewer/debugger actually run tests, linters, or a repro script,
   // gated by an allowlist so it can't be used as a general-purpose shell.
   const runCommand = tool(

@@ -1,5 +1,9 @@
 import { Annotation } from "@langchain/langgraph";
-import type { CoderResponse, Status } from "shared-types/client";
+import type {
+  CoderResponse,
+  DebuggerResponse,
+  Status,
+} from "shared-types/client";
 import z from "zod";
 
 export const GraphState = Annotation.Root({
@@ -22,14 +26,16 @@ export const GraphState = Annotation.Root({
   >(),
   codeChanges: Annotation<string>(),
   reviewFeedback: Annotation<string>(),
-  reviewVerdict: Annotation<"pass" | "fail" | null>,
+  reviewVerdict: Annotation<"pass" | "fail" | null>(),
+  reviewNote: Annotation<string>(),
+  debugger_output: Annotation<z.infer<typeof DebuggerResponse>>(),
   iterationCount: Annotation<number>({
     reducer: (_, next) => next,
     default: () => 0,
   }),
   maxIterations: Annotation<number>({
     reducer: (_, next) => next,
-    default: () => 10,
+    default: () => 3,
   }),
   root_cause: Annotation<string>(),
   files_to_change:
